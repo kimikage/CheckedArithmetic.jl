@@ -1,6 +1,5 @@
 using CheckedArithmeticCore
 using BenchmarkTools
-using Base.Checked # TODO: re-export
 
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 1
 
@@ -16,16 +15,35 @@ for T in eltypes
 end
 
 SUITE = BenchmarkGroup()
-SUITE["add"] = BenchmarkGroup([],
-    "wrapping" => BenchmarkGroup(),
-    "saturating" => BenchmarkGroup(),
-    "checked" => BenchmarkGroup(),
-)
+for op in ("neg", "abs", "add", "sub", "mul")
+    SUITE[op] = BenchmarkGroup()
+    for T in eltypes
+        SUITE[op][string(T)] = BenchmarkGroup()
+    end
+end
 
 for T in eltypes
     x = xs[T]::Matrix{T}
     y = ys[T]::Matrix{T}
     z = zs[T]::Matrix{T}
     t = string(T)
-    SUITE["add"]["checked"   ][t] = @benchmarkable    checked_add.($x, $z)
+    SUITE["neg"][t]["wrapping"  ] = @benchmarkable   wrapping_neg.($x)
+    SUITE["neg"][t]["saturating"] = @benchmarkable saturating_neg.($x)
+    SUITE["neg"][t]["checked"   ] = @benchmarkable    checked_neg.($z)
+
+    SUITE["abs"][t]["wrapping"  ] = @benchmarkable   wrapping_abs.($x)
+    SUITE["abs"][t]["saturating"] = @benchmarkable saturating_abs.($x)
+    SUITE["abs"][t]["checked"   ] = @benchmarkable    checked_abs.($z)
+
+    SUITE["add"][t]["wrapping"  ] = @benchmarkable   wrapping_add.($x, $y)
+    SUITE["add"][t]["saturating"] = @benchmarkable saturating_add.($x, $y)
+    SUITE["add"][t]["checked"   ] = @benchmarkable    checked_add.($x, $z)
+
+    SUITE["sub"][t]["wrapping"  ] = @benchmarkable   wrapping_sub.($x, $y)
+    SUITE["sub"][t]["saturating"] = @benchmarkable saturating_sub.($x, $y)
+    SUITE["sub"][t]["checked"   ] = @benchmarkable    checked_sub.($x, $z)
+
+    SUITE["mul"][t]["wrapping"  ] = @benchmarkable   wrapping_mul.($x, $y)
+    SUITE["mul"][t]["saturating"] = @benchmarkable saturating_mul.($x, $y)
+    SUITE["mul"][t]["checked"   ] = @benchmarkable    checked_mul.($x, $z)
 end

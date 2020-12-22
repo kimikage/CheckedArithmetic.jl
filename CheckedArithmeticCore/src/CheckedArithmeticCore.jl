@@ -2,6 +2,30 @@ module CheckedArithmeticCore
 
 export safearg_type, safearg, safeconvert, accumulatortype, acc
 
+const BitSigned   = Union{Int8, Int16, Int32, Int64, Int128}
+const BitUnsigned = Union{UInt8, UInt16, UInt32, UInt64, UInt128}
+const BitInteger  = Union{BitSigned, BitUnsigned}
+
+include("checked.jl")
+include("saturating.jl")
+include("wrapping.jl")
+
+using .Checked
+using .Saturating
+using .Wrapping
+
+# re-export
+for name in names(CheckedArithmeticCore.Checked)
+    @eval export $name
+end
+for name in names(CheckedArithmeticCore.Saturating)
+    @eval export $name
+end
+for name in names(CheckedArithmeticCore.Wrapping)
+    @eval export $name
+end
+
+
 """
     newT = CheckedArithmeticCore.safearg_type(::Type{T})
 
